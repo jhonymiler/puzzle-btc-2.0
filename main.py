@@ -12,6 +12,7 @@ Uso:
 Opções:
     --master      - Executa o Master Coordinator
     --continuous  - Executa o Continuous Runner  
+    --resume      - Continua execução do último checkpoint
     --test        - Executa os testes de validação
     --monitor     - Executa o monitor de execução
     --analyze     - Executa o analisador de resultados
@@ -53,6 +54,11 @@ def main():
     elif option == '--continuous':
         from src.continuous_runner import main as continuous_main
         continuous_main()
+        
+    elif option == '--resume':
+        from src.continuous_runner import ContinuousRunner
+        runner = ContinuousRunner()
+        runner.resume_from_checkpoint()
         
     elif option == '--test':
         os.chdir('tests')

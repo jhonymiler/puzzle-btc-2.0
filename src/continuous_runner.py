@@ -51,6 +51,26 @@ class ContinuousRunner:
         
         with open('continuous_progress.json', 'w') as f:
             json.dump(progress_data, f, indent=2)
+    
+    def load_progress(self):
+        """Carrega progresso anterior se disponível"""
+        if os.path.exists('continuous_progress.json'):
+            try:
+                with open('continuous_progress.json', 'r') as f:
+                    progress_data = json.load(f)
+                
+                self.total_keys_tested = progress_data.get('total_keys_tested', 0)
+                self.best_candidates = progress_data.get('best_candidates', [])
+                
+                # Ajustar start_time para manter estatísticas corretas
+                runtime_hours = progress_data.get('runtime_hours', 0)
+                self.start_time = time.time() - (runtime_hours * 3600)
+                
+                return progress_data
+            except Exception as e:
+                print(f"⚠️ Erro ao carregar progresso: {e}")
+                return None
+        return None
             
     def save_final_report(self):
         """Salva relatório final detalhado"""
@@ -81,6 +101,47 @@ class ContinuousRunner:
             f.write(report)
             
         print(report)
+
+    def resume_from_checkpoint(self):
+        """Retoma a execução a partir do último checkpoint salvo"""
+        print("\n🔄 RETOMANDO EXECUÇÃO A PARTIR DO ÚLTIMO CHECKPOINT")
+        print("=" * 60)
+        
+        # Tentar carregar checkpoint de continuous_runner
+        progress_data = self.load_progress()
+        
+        # Também verificar se existe checkpoint do genetic_solver
+        has_genetic_checkpoint = os.path.exists('genetic_checkpoint.json')
+        
+        if progress_data or has_genetic_checkpoint:
+            if progress_data:
+                print(f"📊 Checkpoint do ContinuousRunner carregado!")
+                print(f"   ⏱️  Runtime anterior: {progress_data.get('runtime_hours', 0):.2f} horas")
+                print(f"   🔑 Chaves testadas: {self.total_keys_tested:,}")
+                
+            if has_genetic_checkpoint:
+                print(f"🧬 Checkpoint do GeneticBitcoinSolver encontrado!")
+                try:
+                    with open('genetic_checkpoint.json', 'r') as f:
+                        genetic_data = json.load(f)
+                    print(f"   🧬 Geração: {genetic_data.get('generation', 0)}")
+                    print(f"   🏆 Melhor fitness: {genetic_data.get('best_fitness', 0)}")
+                except:
+                    print("   ⚠️ Não foi possível ler detalhes do checkpoint genético")
+                
+            # Perguntar quanto tempo continuará executando
+            try:
+                hours_input = input("\n⏰ Quantas horas adicionais deseja executar? (padrão: 24): ").strip()
+                hours = float(hours_input) if hours_input else 24
+            except:
+                hours = 24
+                
+            # Executar busca contínua
+            print(f"\n🚀 Retomando busca por mais {hours} horas...")
+            self.run_continuous_search(hours=hours)
+        else:
+            print("❌ Nenhum checkpoint encontrado para retomar!")
+            print("📋 Execute primeiro o script com uma das opções normais.")
         
     def run_continuous_search(self, hours=24):
         """Executa busca contínua otimizada"""
@@ -189,6 +250,12 @@ def main():
         print(f"   ⏱️  Runtime: {prev_progress.get('runtime_hours', 0):.1f}h")
         print()
     
+    # Verificar se também tem checkpoint genético
+    if os.path.exists('genetic_checkpoint.json'):
+        print(f"🧬 Checkpoint do algoritmo genético encontrado!")
+        print(f"   💡 Use 'python main.py --resume' para continuar a partir dele")
+        print()
+    
     # Opções de execução
     print("OPÇÕES DE EXECUÇÃO CONTÍNUA:")
     print("1. 🕐 Execução de 1 hora (teste)")
@@ -196,8 +263,9 @@ def main():
     print("3. 🌙 Execução de 24 horas (intensiva)")
     print("4. 🔄 Execução personalizada")
     print("5. 🚀 Execução indefinida (até encontrar)")
+    print("6. ⏩ Continuar do último checkpoint")
     
-    choice = input("\nEscolha uma opção (1-5): ").strip()
+    choice = input("\nEscolha uma opção (1-6): ").strip()
     
     runner = ContinuousRunner()
     
@@ -212,6 +280,8 @@ def main():
         runner.run_continuous_search(hours=hours)
     elif choice == '5':
         runner.run_continuous_search(hours=8760)  # 1 ano
+    elif choice == '6':
+        runner.resume_from_checkpoint()
     else:
         print("❌ Opção inválida!")
         return

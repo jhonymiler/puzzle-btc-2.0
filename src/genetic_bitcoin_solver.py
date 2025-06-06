@@ -529,16 +529,82 @@ class GeneticBitcoinSolver:
         
         print(f"💾 Checkpoint salvo (Geração {self.generation})")
     
+    def load_checkpoint(self) -> Tuple[int, List[Individual]]:
+        """Carrega checkpoint se disponível"""
+        try:
+            if os.path.exists('genetic_checkpoint.json'):
+                print("🔄 Checkpoint encontrado! Carregando progresso anterior...")
+                with open('genetic_checkpoint.json', 'r') as f:
+                    data = json.load(f)
+                
+                # Restaura estado do solver
+                self.generation = data['generation']
+                self.best_fitness = data['best_fitness']
+                self.keys_evaluated = data['keys_evaluated']
+                self.mutation_rate = data['mutation_rate']
+                
+                # Restaura população
+                population = []
+                for ind_data in data['population']:
+                    private_key = ind_data['private_key']
+                    
+                    # Recria o indivíduo com a mesma chave privada
+                    individual = self.create_individual(private_key)
+                    
+                    # Preenche a população inicial com este indivíduo várias vezes
+                    # para manter o melhor fitness enquanto adiciona diversidade
+                    population_chunk_size = self.population_size // len(data['population'])
+                    for _ in range(population_chunk_size):
+                        # Adiciona variação para cada clone para aumentar diversidade
+                        if random.random() < 0.7:  # 70% de variação
+                            # Cria variação da chave
+                            variation = private_key
+                            bit_pos = random.randint(0, 70)
+                            variation ^= (1 << bit_pos)  # Flipa um bit
+                            varied_ind = self.create_individual(variation)
+                            population.append(varied_ind)
+                        else:
+                            # Mantém alguns iguais para preservar boas soluções
+                            population.append(individual)
+                
+                # Completa a população se necessário
+                while len(population) < self.population_size:
+                    population.append(self.create_individual())
+                
+                # Ordena por fitness
+                population.sort(key=lambda x: x.fitness)
+                
+                print(f"✅ Checkpoint carregado da geração {self.generation}")
+                print(f"🏆 Melhor fitness: {self.best_fitness:.2f}")
+                print(f"🔑 Total de chaves avaliadas: {self.keys_evaluated:,}")
+                print(f"🧬 Taxa de mutação: {self.mutation_rate*100:.1f}%")
+                
+                return self.generation, population
+            
+        except Exception as e:
+            print(f"⚠️  Erro ao carregar checkpoint: {e}")
+            print("🔄 Iniciando do zero...")
+        
+        return 0, []
+    
     def run_evolution(self, max_generations=1000, save_frequency=10):
         """Executa o algoritmo genético"""
         print("\n🧬 INICIANDO EVOLUÇÃO GENÉTICA")
         print("=" * 60)
         
-        # Inicializa população
-        population = self.initialize_population()
+        # Verifica se existe checkpoint para continuar
+        start_gen, checkpoint_population = self.load_checkpoint()
+        
+        # Se encontrou checkpoint, continua dele, senão inicializa nova população
+        if start_gen > 0 and checkpoint_population:
+            population = checkpoint_population
+            self.start_time = time.time() - (self.keys_evaluated / 1000)  # Estimativa de tempo já executado
+        else:
+            # Inicializa população
+            population = self.initialize_population()
         
         try:
-            for generation in range(max_generations):
+            for generation in range(start_gen, max_generations):
                 # Verifica solução
                 solution = self.check_solution(population)
                 if solution:

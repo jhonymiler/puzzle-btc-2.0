@@ -461,7 +461,7 @@ class BlockchainForensics:
         candidates = []
         
         # Chaves com padrões conhecidamente fracos
-        weak_patterns = self._low_entropy_patterns()
+        weak_patterns = self._test_low_entropy_seeds()
         candidates.extend(weak_patterns)
         
         # Chaves derivadas de palavras comuns (brain wallets)

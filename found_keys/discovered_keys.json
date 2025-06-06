@@ -1,57 +1,6 @@
 {
-  "discovered_keys": [
-    {
-      "additional_info": {
-        "chunk_size": 100000,
-        "execution_time": 125.5,
-        "method": "BSGS_HYBRID",
-        "notes": "Descoberto via Baby-step Giant-step otimizado",
-        "operations_count": 50000
-      },
-      "address": "1PWo3JeB9jrGwfHDNpdGK54CRas7fsVzXU",
-      "hash": "bdaee0bb04f598d7",
-      "private_key": "01a2b3c4d5e6f708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20",
-      "puzzle": 71,
-      "solver": "ULTRA_SMART_SOLVER",
-      "timestamp": "2025-06-06T13:05:27.573490"
-    },
-    {
-      "additional_info": {
-        "entropy": 1.95,
-        "execution_time": 89.3,
-        "fitness": 0.999,
-        "generation": 156,
-        "method": "EVOLUTIONARY_ALGORITHM",
-        "notes": "Descoberto via algoritmo genético evolucionário",
-        "population_size": 500
-      },
-      "address": "1PWo3JeB9jrGwfHDNpdGK54CRas7fsVzXU",
-      "hash": "c026db6efc6cd60f",
-      "private_key": "02c3d4e5f708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202134",
-      "puzzle": 71,
-      "solver": "GENETIC_BITCOIN_SOLVER",
-      "timestamp": "2025-06-06T13:05:27.578639"
-    },
-    {
-      "additional_info": {
-        "candidates_tested": 2427,
-        "execution_time": 23.1,
-        "method": "WEAK_RNG_ANALYSIS",
-        "notes": "Descoberto via análise de vulnerabilidades em RNG",
-        "rng_type": "LINEAR_CONGRUENTIAL",
-        "seed_analysis": "TIMESTAMP_BASED"
-      },
-      "address": "1PWo3JeB9jrGwfHDNpdGK54CRas7fsVzXU",
-      "hash": "743a95653bbc5929",
-      "private_key": "03d4e5f708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20213445",
-      "puzzle": 71,
-      "solver": "BLOCKCHAIN_FORENSICS",
-      "timestamp": "2025-06-06T13:05:27.579712"
-    }
-  ],
+  "discovered_keys": [],
   "metadata": {
-    "created": "2025-06-06T12:59:47.136882",
-    "last_updated": "2025-06-06T13:05:27.579855",
-    "total_keys": 3
+    "created": "2025-06-06T16:33:48.772633"
   }
 }

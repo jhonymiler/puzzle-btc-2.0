@@ -51,6 +51,10 @@ class MasterCoordinator:
         self.start_time = time.time()
         self.found_solution = False
         
+        # Estado de checkpoint
+        self.has_checkpoint = False
+        self.load_coordinator_checkpoint()
+        
         print("🎯 COORDENADOR MESTRE - BITCOIN PUZZLE 71")
         print("=" * 60)
         print(f"🏆 Target: {self.target_address}")
@@ -58,9 +62,52 @@ class MasterCoordinator:
         print(f"⚡ CPU cores: {self.env_config['max_workers']}")
         print(f"🧮 Range: 2^70 a 2^71-1")
         
+        # Mostra status de checkpoint
+        if self.has_checkpoint:
+            print(f"🔄 Checkpoint anterior encontrado! Continuando execução anterior...")
+        
         # Configura CUDA se disponível
         if self.env_detector.cuda_available:
             self.env_detector.setup_cuda_environment()
+    
+    def load_coordinator_checkpoint(self):
+        """Carrega checkpoint do coordenador se existir"""
+        try:
+            if os.path.exists('master_progress.json'):
+                with open('master_progress.json', 'r') as f:
+                    data = json.load(f)
+                
+                self.total_keys_tested = data.get('total_keys_tested', 0)
+                prev_runtime = data.get('runtime_seconds', 0)
+                
+                # Ajusta o start_time para refletir o tempo total de execução
+                self.start_time = time.time() - prev_runtime
+                
+                self.has_checkpoint = True
+                return True
+        except Exception as e:
+            print(f"⚠️ Erro ao carregar checkpoint do coordenador: {e}")
+        
+        return False
+    
+    def save_coordinator_checkpoint(self):
+        """Salva checkpoint do coordenador"""
+        runtime = time.time() - self.start_time
+        
+        data = {
+            'total_keys_tested': self.total_keys_tested,
+            'runtime_seconds': runtime,
+            'timestamp': time.time(),
+            'date': time.strftime('%Y-%m-%d %H:%M:%S'),
+        }
+        
+        try:
+            with open('master_progress.json', 'w') as f:
+                json.dump(data, f, indent=2)
+            return True
+        except Exception as e:
+            print(f"❌ Erro ao salvar checkpoint do coordenador: {e}")
+            return False
     
     def verify_solution(self, private_key: int) -> bool:
         """Verifica se uma chave privada é a solução"""
@@ -302,54 +349,50 @@ class MasterCoordinator:
         print("\n🚀 INICIANDO ATAQUE COORDENADO")
         print("=" * 60)
         print("⚡ Executando múltiplas estratégias em paralelo...")
-        print(f"🖥️  Usando {self.env_config['max_workers']} workers")
-        print(f"🧬 População genética: {self.env_config['genetic_population']:,}")
         
-        # Lista para armazenar todos os candidatos
-        all_candidates = []
+        # Se temos checkpoint, avisa que está continuando de onde parou
+        if self.has_checkpoint:
+            print(f"🔄 Continuando execução a partir de checkpoint salvo")
+            print(f"🕒 Tempo já executado: {(time.time() - self.start_time):.1f} segundos")
+            print(f"🔑 Chaves já testadas: {self.total_keys_tested:,}")
         
-        # 1. Blockchain Forensics (rápido, gera candidatos)
-        try:
-            forensic_candidates = self.run_blockchain_forensics()
-            all_candidates.extend(forensic_candidates)
-            print(f"🕵️ Forensics: {len(forensic_candidates)} candidatos")
-        except Exception as e:
-            print(f"❌ Forensics falhou: {e}")
-        
-        # 2. Testa candidatos forenses primeiro (mais provável)
-        if all_candidates:
-            result = self.test_candidates_parallel(all_candidates[:10000])
-            if result:
-                print(f"\n🎉 SOLUÇÃO ENCONTRADA COM FORENSICS!")
-                print(f"🔑 Chave: 0x{result:016x}")
-                self.save_progress("Blockchain Forensics", result)
-                return result
-        
-        # 3. Executa estratégias pesadas em paralelo
-        print("\n🔥 Iniciando estratégias avançadas em paralelo...")
-        
-        # Usa configuração otimizada do ambiente
-        max_workers = min(self.env_config['max_workers'], 4)
-        
-        with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        # 1. Executa todas as estratégias em paralelo
+        with ThreadPoolExecutor(max_workers=4) as executor:
             futures = []
             
+            # Algoritmo Genético - usa checkpoint se disponível
+            print("🧬 Iniciando Algoritmo Genético Otimizado...")
+            solver = GeneticBitcoinSolver(population_size=1000, elite_ratio=0.15)
+            future_genetic = executor.submit(solver.run_evolution, max_generations=500, save_frequency=5)
+            futures.append(("Genetic", future_genetic))
+            
+            # Análise forense de blockchain
+            print("🔍 Iniciando Blockchain Forensics...")
+            forensics = BlockchainForensics()
+            future_forensic = executor.submit(forensics.analyze_puzzle_71)
+            futures.append(("Forensics", future_forensic))
+            
             # Ultra Smart Solver
-            future_smart = executor.submit(self.run_ultra_smart_solver)
-            futures.append(("Ultra Smart", future_smart))
+            print("🧠 Iniciando Ultra Smart Solver...")
+            future_ultra = executor.submit(self.run_ultra_smart_solver)
+            futures.append(("UltraSmart", future_ultra))
             
-            # Algoritmo Genético com população otimizada
-            future_genetic = executor.submit(self.run_genetic_algorithm)
-            futures.append(("Genetic Algorithm", future_genetic))
+            # Força bruta como último recurso (paralela)
+            cpu_count = self.env_config.get('max_workers', mp.cpu_count())
             
-            # Força bruta em chunks baseado na configuração
-            range_size = self.max_key - self.min_key
-            chunk_size = range_size // max_workers
+            # Calcula tamanho estimado do espaço
+            range_size = self.max_key - self.min_key + 1
+            num_workers = max(1, min(cpu_count // 2, 4))  # Limitado a 4 workers
             
-            # Apenas 2 chunks de força bruta para balancear recursos
-            for i in range(min(2, max_workers)):
-                start = self.min_key + i * chunk_size
-                end = start + chunk_size
+            print(f"💪 Iniciando Força Bruta Inteligente (×{num_workers})...")
+            
+            # Divide range em chunks para força bruta
+            chunk_size = range_size // (num_workers * 100)  # 100 chunks por worker
+            futures_brute = []
+            
+            for i in range(num_workers):
+                start = self.min_key + (i * chunk_size * 100)
+                end = min(start + (chunk_size * 100), self.max_key)
                 future_brute = executor.submit(self.run_intelligent_bruteforce, start, end)
                 futures.append((f"Bruteforce_{i}", future_brute))
             
@@ -360,17 +403,42 @@ class MasterCoordinator:
             else:
                 timeout = 3600  # 1 hora padrão
             
-            # Monitora execução
-            for method, future in futures:
-                try:
-                    result = future.result(timeout=timeout)
-                    if result:
-                        print(f"\n🎉 SOLUÇÃO ENCONTRADA COM {method.upper()}!")
-                        print(f"🔑 Chave: 0x{result:016x}")
-                        self.save_progress(method, result)
-                        return result
-                except Exception as e:
-                    print(f"⚠️  {method} falhou: {e}")
+            # Variável para controlar salvamento de checkpoint periódico
+            last_checkpoint_time = time.time()
+            checkpoint_interval = 300  # Salvar a cada 5 minutos
+            
+            # Monitora execução com salvamento periódico de checkpoint
+            running_futures = list(futures)
+            while running_futures:
+                # Verifica se está na hora de salvar checkpoint
+                current_time = time.time()
+                if current_time - last_checkpoint_time >= checkpoint_interval:
+                    self.save_coordinator_checkpoint()
+                    last_checkpoint_time = current_time
+                    print(f"\n💾 Checkpoint salvo! Chaves testadas: {self.total_keys_tested:,}")
+                
+                # Verifica cada estratégia
+                completed = []
+                for method, future in running_futures:
+                    if future.done():
+                        completed.append((method, future))
+                        try:
+                            result = future.result()
+                            if result:
+                                print(f"\n🎉 SOLUÇÃO ENCONTRADA COM {method.upper()}!")
+                                print(f"🔑 Chave: 0x{result:016x}")
+                                self.save_progress(method, result)
+                                return result
+                        except Exception as e:
+                            print(f"⚠️  {method} falhou: {e}")
+                
+                # Remove estratégias completadas
+                for item in completed:
+                    running_futures.remove(item)
+                
+                # Pequena pausa para não sobrecarregar CPU
+                if running_futures:
+                    time.sleep(1)
         
         # 4. Se nada funcionou, executa força bruta estendida
         print("\n💪 Iniciando força bruta estendida...")
@@ -389,7 +457,8 @@ class MasterCoordinator:
                 future = executor.submit(self.run_intelligent_bruteforce, start, end)
                 futures.append(future)
             
-            # Monitora força bruta
+            # Monitora força bruta com salvamento periódico
+            last_checkpoint_time = time.time()
             for i, future in enumerate(futures):
                 try:
                     result = future.result(timeout=1800)  # 30 min timeout por chunk
@@ -398,6 +467,14 @@ class MasterCoordinator:
                         print(f"🔑 Chave: 0x{result:016x}")
                         self.save_progress("Intelligent Bruteforce", result)
                         return result
+                    
+                    # Verifica se está na hora de salvar checkpoint
+                    current_time = time.time()
+                    if current_time - last_checkpoint_time >= checkpoint_interval:
+                        self.save_coordinator_checkpoint()
+                        last_checkpoint_time = current_time
+                        print(f"\n💾 Checkpoint salvo! Chaves testadas: {self.total_keys_tested:,}")
+                        
                 except Exception as e:
                     print(f"⚠️  Chunk {i} falhou: {e}")
         
@@ -408,6 +485,7 @@ class MasterCoordinator:
         print(f"🔑 Chaves testadas: {self.total_keys_tested:,}")
         print(f"⚡ Velocidade: {self.total_keys_tested / runtime:.0f} chaves/segundo")
         
+        self.save_coordinator_checkpoint()
         self.save_progress("Execution Complete", None)
         
         return None
