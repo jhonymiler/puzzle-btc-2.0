@@ -1,0 +1,105 @@
+<VSCode.Cell language="python">
+# PARTE 7: Execução Otimizada para Kaggle (Dual-GPU)
+
+def run_kaggle_optimized():
+    """
+    Função otimizada para execução no ambiente Kaggle com 2 GPUs.
+    Utiliza paralelismo e estratégias agressivas para maximizar chances de encontrar a chave.
+    """
+    print("🚀 Iniciando busca otimizada para ambiente Kaggle (Dual-GPU)...")
+    
+    # Inicializar dois solvers separados para diferentes estratégias
+    # Cada um otimizado para uma GPU diferente
+    
+    # Solver 1: Foco em algoritmo genético com população maior
+    genetic_config = {
+        'target_address': PUZZLE_71_CONFIG['target_address'],
+        'min_range': PUZZLE_71_CONFIG['min_range'],
+        'max_range': PUZZLE_71_CONFIG['max_range'],
+        'batch_size': PUZZLE_71_CONFIG['batch_size'] // 2,
+        'population_size': PUZZLE_71_CONFIG['population_size'] * 2
+    }
+    
+    # Solver 2: Foco em busca multi-estratégia com batch maior
+    multi_config = {
+        'target_address': PUZZLE_71_CONFIG['target_address'],
+        'min_range': PUZZLE_71_CONFIG['min_range'],
+        'max_range': PUZZLE_71_CONFIG['max_range'],
+        'batch_size': PUZZLE_71_CONFIG['batch_size'] * 2,
+        'population_size': PUZZLE_71_CONFIG['population_size'] // 2
+    }
+    
+    # Usando thread pool para executar ambos solvers em paralelo
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        # Configurar os solvers
+        genetic_solver = BitcoinPuzzleSolver(**genetic_config)
+        multi_solver = BitcoinPuzzleSolver(**multi_config)
+        
+        print("🧬 Iniciando solver genético na GPU 0...")
+        print("🔍 Iniciando solver multi-estratégia na GPU 1...")
+        
+        # Executar buscas em paralelo
+        future_genetic = executor.submit(
+            genetic_solver.run_genetic_search,
+            max_generations=50  # Mais gerações para busca genética
+        )
+        
+        future_multi = executor.submit(
+            multi_solver.run_multi_strategy_search,
+            num_batches=500,  # Mais lotes para multi-estratégia
+            strategies=['adaptive', 'fibonacci', 'quantum_inspired']
+        )
+        
+        # Aguardar qualquer um dos solvers encontrar a chave
+        result = None
+        while not future_genetic.done() and not future_multi.done():
+            time.sleep(1)  # Verificar a cada 1 segundo
+            
+            if future_genetic.done() and future_genetic.result():
+                result = future_genetic.result()
+                print("🎯 Solver genético encontrou a chave!")
+                break
+                
+            if future_multi.done() and future_multi.result():
+                result = future_multi.result()
+                print("🎯 Solver multi-estratégia encontrou a chave!")
+                break
+        
+        print("\n⏱️ Finalizando todos os solvers...")
+        
+        # Se encontramos a chave, retornar
+        if result:
+            print(f"\n🎉🎉🎉 CHAVE ENCONTRADA: {result}")
+            print(f"🔑 Endereço Bitcoin: {PUZZLE_71_CONFIG['target_address']}")
+            return result
+        
+        # Verificar se algum completou mas não encontrou a chave
+        if future_genetic.done():
+            genetic_result = future_genetic.result()
+            if genetic_result:
+                print(f"\n🎉🎉🎉 CHAVE ENCONTRADA: {genetic_result}")
+                print(f"🔑 Endereço Bitcoin: {PUZZLE_71_CONFIG['target_address']}")
+                return genetic_result
+                
+        if future_multi.done():
+            multi_result = future_multi.result()
+            if multi_result:
+                print(f"\n🎉🎉🎉 CHAVE ENCONTRADA: {multi_result}")
+                print(f"🔑 Endereço Bitcoin: {PUZZLE_71_CONFIG['target_address']}")
+                return multi_result
+    
+    print("\n⚠️ Chave não encontrada. Tente executar novamente.")
+    return None
+
+# Verificar se estamos no ambiente Kaggle com GPUs
+if IS_KAGGLE and (GPU_COUNT > 1 or FORCE_GPU):
+    print(f"🖥️ Ambiente Kaggle detectado com {GPU_COUNT} GPUs")
+    print("▶️ Iniciando execução otimizada para dual-GPU...")
+    result = run_kaggle_optimized()
+else:
+    print("⚙️ Executando em modo padrão (não-Kaggle ou single-GPU)...")
+    # Usar configuração padrão já executada acima
+    pass
+
+print("\n✅ Execução final concluída!")
+</VSCode.Cell>

@@ -1,0 +1,9 @@
+{
+  "genetic_population": 1500,
+  "genetic_elite_rate": 0.2,
+  "genetic_mutation_rate": 0.03,
+  "genetic_crossover_rate": 0.85,
+  "max_time_minutes": 60,
+  "checkpoint_interval": 300,
+  "max_workers": 4
+}

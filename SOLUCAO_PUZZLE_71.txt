@@ -1,0 +1,8 @@
+🎉 BITCOIN PUZZLE 71 RESOLVIDO! 🎉
+========================================
+Chave privada (hex): 0x5e0d23fffd15726677
+Chave privada (decimal): 1734940824737827415671
+Método: Genetic Algorithm
+Timestamp: 1749236571.8563392
+Runtime: 3605.43 segundos
+Total de chaves testadas: 0

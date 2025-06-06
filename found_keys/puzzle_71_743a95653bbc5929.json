@@ -1,0 +1,16 @@
+{
+  "puzzle": 71,
+  "private_key": "03d4e5f708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20213445",
+  "address": "1PWo3JeB9jrGwfHDNpdGK54CRas7fsVzXU",
+  "solver": "BLOCKCHAIN_FORENSICS",
+  "timestamp": "2025-06-06T13:05:27.579712",
+  "hash": "743a95653bbc5929",
+  "additional_info": {
+    "method": "WEAK_RNG_ANALYSIS",
+    "rng_type": "LINEAR_CONGRUENTIAL",
+    "seed_analysis": "TIMESTAMP_BASED",
+    "execution_time": 23.1,
+    "candidates_tested": 2427,
+    "notes": "Descoberto via an\u00e1lise de vulnerabilidades em RNG"
+  }
+}
