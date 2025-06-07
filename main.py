@@ -65,8 +65,8 @@ def main():
         os.system('python3 robust_validation_test.py')
         
     elif option == '--monitor':
-        from src.monitor_execution import main as monitor_main
-        monitor_main()
+        from src.monitor_execution import monitor_progress
+        monitor_progress()
         
     elif option == '--analyze':
         from src.analyzer import main as analyzer_main

@@ -1,9 +1,6 @@
 {
-  "timestamp": 1749238211.2368422,
-  "runtime": 3600,
-  "total_keys_tested": 500000,
-  "keys_per_second": 138.9,
-  "last_method": "Genetic",
-  "solution_found": false,
-  "solution": null
+  "total_keys_tested": 50000,
+  "runtime_seconds": 5.008508920669556,
+  "timestamp": 1749328330.7066076,
+  "date": "2025-06-07 17:32:10"
 }

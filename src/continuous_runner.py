@@ -18,8 +18,12 @@ import signal
 import sys
 import os
 from datetime import datetime, timedelta
-from master_coordinator import MasterCoordinator
 import json
+
+try:
+    from .master_coordinator import MasterCoordinator
+except ImportError:
+    from master_coordinator import MasterCoordinator
 
 class ContinuousRunner:
     def __init__(self):

@@ -4,10 +4,12 @@ Sistema ultra-inteligente e coordenado para resolver o Bitcoin Puzzle 71 usando 
 
 ## 🎯 Bitcoin Puzzle 71 Target
 
+**🔗 Desafio Oficial:** [https://privatekeys.pw/puzzles/bitcoin-puzzle-tx](https://privatekeys.pw/puzzles/bitcoin-puzzle-tx)  
 **Endereço:** `1PWo3JeB9jrGwfHDNpdGK54CRas7fsVzXU`  
 **Public Key:** `03a2efa402fd5268400c77c20e574ba86409ededee7c4020e4b9f0edbee53de0d4`  
 **Range:** 2^70 a 2^71-1 (1,180,591,620,717,411,303,424 possibilidades)  
-**Recompensa:** 7.1 BTC (~$710,000 USD)
+**Recompensa:** 7.1 BTC (~$710,000 USD)  
+**Status:** 🔴 Não resolvido
 
 ## 🏆 Sistema Ultra-Inteligente - Recursos Únicos
 
@@ -307,6 +309,78 @@ O sistema está **100% funcional, testado e otimizado** para a busca da soluçã
 - **Timestamps Bitcoin** - 25 seeds baseados em blocos históricos
 - **Baixa Entropia** - 600 padrões identificados
 - **Padrões Sequenciais** - Análise de puzzles 63-70
+
+## 🛠️ Comandos Utilitários
+
+### Script Principal (main.py)
+```bash
+# Executar coordenador mestre
+python3 main.py --master
+
+# Execução contínua
+python3 main.py --continuous
+
+# Resume da última execução
+python3 main.py --resume
+
+# Executar testes
+python3 main.py --test
+
+# Monitor de execução
+python3 main.py --monitor
+
+# Analisar resultados
+python3 main.py --analyze
+
+# Instalar dependências
+python3 main.py --install
+
+# Informações do ambiente
+python3 main.py --environment
+
+# Ajuda
+python3 main.py --help
+```
+
+### Scripts Utilitários
+```bash
+# Script de utilitários gerais
+./scripts/utils.sh status      # Status do projeto
+./scripts/utils.sh clean       # Limpeza automática
+./scripts/utils.sh run         # Executar solver
+./scripts/utils.sh help        # Ajuda
+
+# Limpeza automática
+./scripts/cleanup.sh           # Remove cache e arquivos temporários
+
+# Execução tradicional
+./scripts/run_solver.sh        # Script de execução completo
+```
+
+## 🔧 Melhorias Recentes (v2.5)
+
+### ✅ Sistema de Limpeza Automática
+- **Remoção automática** de arquivos de cache Python (`.pyc`, `__pycache__`)
+- **Limpeza de progresso** para reinicios limpos
+- **Scripts utilitários** para manutenção do projeto
+- **Gitignore atualizado** com padrões de arquivos temporários
+
+### ✅ Correções de Importação
+- **Importações corrigidas** em todos os módulos
+- **Fallback automático** para importações relativas/absolutas
+- **Sistema robusto** contra erros de importação
+
+### ✅ Interface Melhorada
+- **Comando --master funcional** sem interação do usuário
+- **Execução automática** do algoritmo genético
+- **Scripts utilitários** para facilitar o uso
+- **Documentação atualizada** com exemplos práticos
+
+### ✅ Otimizações de Performance
+- **Coordenador mestre** simplificado e eficiente
+- **Checkpoint automático** com salvamento inteligente
+- **Monitoramento em tempo real** aprimorado
+- **Gestão de memória** otimizada
 
 ## ⚠️ Disclaimer Legal
 

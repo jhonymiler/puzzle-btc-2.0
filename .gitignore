@@ -60,3 +60,22 @@ logs/
 
 # Manter diretório found_keys mas ignorar conteúdo sensível
 # found_keys/*.json (comentado para preservar exemplos)
+
+# Progress and checkpoint files
+*progress*.json
+*checkpoint*.json
+final_report.txt
+
+# Temporary files
+*~
+.#*
+#*#
+*.tmp
+*.bak
+*.backup
+
+# Log files
+*.log
+
+# Cache directories
+.pytest_cache/
